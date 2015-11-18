@@ -1,0 +1,45 @@
+/* ============================================================
+   样式重置
+   ============================================================ */
+body,p,ul,ol,li,dl,dt,dd,h1,h2,h3,h4,h5,h6,form,fieldset,legend,input,select,textarea,button,th,td{margin:0;padding:0;}
+h1,h2,h3,h4,h5,h6{font-size:100%;}
+ul,dl,ol{list-style:none;}
+img,fieldset,input[type="submit"]{border:0 none;}
+img{display:inline-block;overflow:hidden;vertical-align:top;}
+em{font-style:normal;}
+strong{font-weight:normal;}
+table{border-collapse:collapse;border-spacing:0;}
+button,input[type="button"]{cursor:pointer;border:0 none;}
+textarea{word-wrap:break-word;resize:none;}  /* word-wrap for opera, resize for webkit */
+menu{margin:0;padding:0;}
+body{-webkit-user-select:none;-webkit-text-size-adjust:100%!important;font-family:Helvetica;}
+input[type="number"]{-webkit-user-select:text;}
+a,button,input,img{-webkit-touch-callout:none;}/* 1.ios 长按时不触发系统的菜单 2.禁止长按时下载图片 */
+input,select,textarea{outline:none;}
+
+/* 去除android4.0以下 a/button/input标签被点击时产生的边框 因为边框引起了不少bug */
+a,button,input{-webkit-tap-highlight-color:rgba(0,0,0,0);}
+/* Android4.0下不识别选择器-webkit-transform-3d 使用它可做Android4.0下版本兼容 */
+@media all and (-webkit-transform-3d){
+	/* android4.0+ ios4+ 恢复按钮被点击时产生的效果 */
+	a,button,input{-webkit-tap-highlight-color:rgba(130,130,130,.52);}
+}
+html,body{height:100%;}
+a{text-decoration:none;}
+
+.container{
+	overflow: hidden;
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+.content{
+	width: 1200px;
+	height: 100%;
+	transform-origin: 0px 0px 0px;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	background: url("../images/2008071502334151.jpg") no-repeat;
+	background-size: 100% 100%;
+}
