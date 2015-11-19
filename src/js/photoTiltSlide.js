@@ -4,19 +4,27 @@ var PhotoTiltSlide = function(opts) {
 
     //可配置参数
     var targ = document.getElementById(opts.targ),
-    	container = opts.container || document.body,		//滑动容器的区域
-    	setGamma = opts.setGamma || 6,						//触发陀螺仪的偏转角度
-    	setSpeed = opts.setSpeed || 2,						//动画速度
-    	setPoi = opts.setPoi || 0.2,						//初始化时候所在位置，百分比
+    	container = opts.container || document.body,			//滑动容器的区域
+    	// disX = opts.slide.disX || 2,							//触发滑动
+    	deviceorientation = opts.deviceorientation || null,		//deviceorientation相关参数
+    	slide = opts.slide || {isTouch: true, timeout: 0},
 
-    	viewport,											//viewport数据
-    	targData,											//整体容器width和height
-    	firstPoi,											//初始化位置
-    	playTo,												//更新动画位置
-    	delta,												//边界
-    	speed = 0,											//速度
-    	isStopRender = false,								//是否停止渲染
-    	firstRun = true;									//是否第一次执行动画
+    	viewport,												//viewport数据
+    	targData,												//整体容器width和height
+    	firstPoi,												//初始化位置
+    	playTo,													//更新动画位置
+    	delta,													//边界
+    	
+    	//slide相关数据
+    	x,														//初始X位置
+    	_x,														//移动中_x位置
+    	st,														//计时器
+    	isStop = false,											//是否停止动画
+
+
+    	//deviceorientation相关数据
+    	speed = 0,												//速度
+    	firstRun = true;										//是否第一次执行动画
 
         window.requestAnimationFrame = window.requestAnimationFrame ||
         							   window.mozRequestAnimationFrame ||
@@ -27,11 +35,11 @@ var PhotoTiltSlide = function(opts) {
     //初始化启动
     var _init = function() {
         _initData();
+        // console.log(viewport);
+        // console.log(targData);
+        // console.log(playTo);
+        // console.log(delta);
 
-        console.log(viewport);
-        console.log(targData);
-        console.log(playTo);
-        console.log(delta);
         //绑定拖动事件
         _bindEvent();
 
@@ -43,7 +51,18 @@ var PhotoTiltSlide = function(opts) {
         getViewPort();														//获取viewport信息
         getWrapData();														//获取节点信息
 
-        playTo = firstPoi = targData.width * setPoi * -1;					//初始化当前视口所在位置
+        if(deviceorientation){
+        	deviceorientation.setGamma = opts.deviceorientation.setGamma || 6;
+        	deviceorientation.setSpeed = opts.deviceorientation.setSpeed || 2;
+        	deviceorientation.setPoi = opts.deviceorientation.setPoi || 0.2;
+        	playTo = firstPoi = targData.width * deviceorientation.setPoi * -1;//初始化当前视口所在位置
+        					
+        }else{
+        	playTo = firstPoi = 0;
+        }
+
+        
+
         delta = targData.width * -1 + viewport.width;					//初始化边界
     	setTranslateX(targ, firstPoi);
     };
@@ -51,17 +70,17 @@ var PhotoTiltSlide = function(opts) {
 
 
     var _bindEvent = function(){
-    	if (window.DeviceOrientationEvent) {
+    	if (window.DeviceOrientationEvent && opts.deviceorientation) {
 
             window.addEventListener('deviceorientation', function(eventData) {
             	var gamma = eventData.gamma;
             	// console.log(gamma);
-            	if(gamma < setGamma * -1){
+            	if(gamma < deviceorientation.setGamma * -1){
 
 
-                    speed = setSpeed;
-            	}else if(gamma > setGamma){
-                    speed = setSpeed * -1;
+                    speed = deviceorientation.setSpeed;
+            	}else if(gamma > deviceorientation.setGamma){
+                    speed = deviceorientation.setSpeed * -1;
                 }else{
                     speed = 0;
                 }
@@ -69,8 +88,81 @@ var PhotoTiltSlide = function(opts) {
             if(firstRun){
                 window.requestAnimationFrame(updatePosition);
             }
+        }
+
+        if(opts.slide){
+	        targ.addEventListener('touchstart', function(e) {
+	            _touchstart(e);
+	        });
+	        targ.addEventListener('touchmove', function(e) {
+	            _touchmove(e);
+	        });
+	        targ.addEventListener('touchend', function(e) {
+	            _touchend(e);
+	        });
 
         }
+    };
+
+    var _touchstart = function(e) {
+        e.preventDefault();
+        x = e.targetTouches[0].clientX;
+        if(slide.timeout != 0) isStop = true;
+        
+        clearTimeout(st);
+    };
+
+    var _touchmove = function(e) {
+        e.preventDefault();
+
+        _x = e.targetTouches[0].clientX;
+
+        var disX = _x - x;
+        x = e.targetTouches[0].clientX;
+        // console.log(playTo, "playTo");
+        // console.log(disX, "disX");
+        // console.log(firstPoi,"firstPoi");
+        // console.log(playTo, "-playTo");
+
+        playTo = playTo + disX + firstPoi;
+
+
+        if(playTo > 0){
+            playTo = 0;
+        }else if(playTo < targData.width * -1 + viewport.width){
+
+            playTo = targData.width * -1 + viewport.width;
+        }
+
+
+        if (playTo > targData.width * -1 + viewport.width) {
+            // console.log((playTo + disX + firstPoi));
+            // console.log(playTo,"playTo");
+            // console.log(disX,"disX");
+            // console.log(firstPoi,"firstPoi");
+
+            firstPoi = 0;
+            // console.log(targ.style.transform);
+            setTranslateX(targ, playTo);
+        } else if (playTo <= 0) {
+            firstPoi = 0;
+
+            setTranslateX(targ, playTo);
+        }
+
+
+    };
+
+    var _touchend = function(e) {
+        e.preventDefault();
+
+        if(slide.timeout != 0){
+        	st = setTimeout(function(){
+	        	isStop = false;
+	        },slide.timeout * 1000);
+        }
+        // slide.isTouch = false;
+
     };
 
     var updatePosition = function(){
@@ -80,7 +172,7 @@ var PhotoTiltSlide = function(opts) {
             playTo = speed * -1;
         }else if(playTo < delta - speed){
             playTo = delta - speed;
-        }else{
+        }else if(slide.isTouch && !isStop){
             playTo = playTo + firstPoi + speed;
             firstPoi = 0;
             setTranslateX(targ, playTo);

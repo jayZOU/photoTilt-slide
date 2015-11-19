@@ -21,9 +21,15 @@
 <script>
 	var photoTiltSlide = new PhotoTiltSlide({
 		targ: "content",					//必填，区域容器
-		setGamma: 6,						//选填，触发陀螺仪的偏转角度
-		setSpeed: 20,						//选填，动画速度，单位px
-		setPoi: 0.2							//选填，初始化时候所在位置，百分比
+		deviceorientation: {				//选填，
+			setGamma: 6,					//选填，触发陀螺仪的偏转角度
+			setSpeed: 2,					//选填，动画速度，单位px
+			setPoi: 0.1						//选填，初始化时候所在位置，百分比
+		},
+		slide: {							//选填
+			isTouch: true,				//选填，touch事件发生时是否停止deviceorientation
+			timeout: 2,						//选填，点击之后停留时间
+		}
 	});
 </script>
 </body>
