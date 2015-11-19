@@ -1,35 +1,49 @@
+/**
+	 *	PhotoTiltSlide 方向传感器组件
+	 *	@author jayzou
+	 *	@time 2015-11-19
+	 *	@version 0.0.1
+	 *	@class PhotoTiltSlide
+	 *	@param String	targ		            必填	传入容器ID
+	 *	@param {Object}	deviceorientation		选填	方向传感器配置
+	 *	@param {Object}	slide		            选填	拖动配置
+ **/
+
 var PhotoTiltSlide = function(opts) {
 
     'use strict';
 
     //可配置参数
     var targ = document.getElementById(opts.targ),
-    	container = opts.container || document.body,			//滑动容器的区域
-    	// disX = opts.slide.disX || 2,							//触发滑动
-    	deviceorientation = opts.deviceorientation || null,		//deviceorientation相关参数
-    	slide = opts.slide || {isTouch: true, timeout: 0},
+        container = opts.container || document.body, //滑动容器的区域
+        // disX = opts.slide.disX || 2,							//触发滑动
+        deviceorientation = opts.deviceorientation || null, //deviceorientation相关参数
+        slide = opts.slide || {
+            isTouch: true,
+            timeout: 0
+        },
 
-    	viewport,												//viewport数据
-    	targData,												//整体容器width和height
-    	firstPoi,												//初始化位置
-    	playTo,													//更新动画位置
-    	delta,													//边界
-    	
-    	//slide相关数据
-    	x,														//初始X位置
-    	_x,														//移动中_x位置
-    	st,														//计时器
-    	isStop = false,											//是否停止动画
+        viewport, //viewport数据
+        targData, //整体容器width和height
+        firstPoi, //初始化位置
+        playTo, //更新动画位置
+        delta, //边界
+
+        //slide相关数据
+        x, //初始X位置
+        _x, //移动中_x位置
+        st, //计时器
+        isStop = false, //是否停止动画
 
 
-    	//deviceorientation相关数据
-    	speed = 0,												//速度
-    	firstRun = true;										//是否第一次执行动画
+        //deviceorientation相关数据
+        speed = 0, //速度
+        firstRun = true; //是否第一次执行动画
 
-        window.requestAnimationFrame = window.requestAnimationFrame ||
-        							   window.mozRequestAnimationFrame ||
-        							   window.webkitRequestAnimationFrame ||
-        							   window.msRequestAnimationFrame;
+    window.requestAnimationFrame = window.requestAnimationFrame ||
+        							window.mozRequestAnimationFrame ||
+        							window.webkitRequestAnimationFrame ||
+        							window.msRequestAnimationFrame;
 
 
     //初始化启动
@@ -47,59 +61,59 @@ var PhotoTiltSlide = function(opts) {
 
     //初始化启动数据
     var _initData = function() {
-        
-        getViewPort();														//获取viewport信息
-        getWrapData();														//获取节点信息
 
-        if(deviceorientation){
-        	deviceorientation.setGamma = opts.deviceorientation.setGamma || 6;
-        	deviceorientation.setSpeed = opts.deviceorientation.setSpeed || 2;
-        	deviceorientation.setPoi = opts.deviceorientation.setPoi || 0.2;
-        	playTo = firstPoi = targData.width * deviceorientation.setPoi * -1;//初始化当前视口所在位置
-        					
-        }else{
-        	playTo = firstPoi = 0;
+        getViewPort(); //获取viewport信息
+        getWrapData(); //获取节点信息
+
+        if (deviceorientation) {
+            deviceorientation.setGamma = opts.deviceorientation.setGamma || 6;
+            deviceorientation.setSpeed = opts.deviceorientation.setSpeed || 2;
+            deviceorientation.setPoi = opts.deviceorientation.setPoi || 0.2;
+            playTo = firstPoi = targData.width * deviceorientation.setPoi * -1; //初始化当前视口所在位置
+
+        } else {
+            playTo = firstPoi = 0;
         }
 
-        
 
-        delta = targData.width * -1 + viewport.width;					//初始化边界
-    	setTranslateX(targ, firstPoi);
+
+        delta = targData.width * -1 + viewport.width; //初始化边界
+        setTranslateX(targ, firstPoi);
     };
 
 
 
-    var _bindEvent = function(){
-    	if (window.DeviceOrientationEvent && opts.deviceorientation) {
+    var _bindEvent = function() {
+        if (window.DeviceOrientationEvent && opts.deviceorientation) {
 
             window.addEventListener('deviceorientation', function(eventData) {
-            	var gamma = eventData.gamma;
-            	// console.log(gamma);
-            	if(gamma < deviceorientation.setGamma * -1){
+                var gamma = eventData.gamma;
+                // console.log(gamma);
+                if (gamma < deviceorientation.setGamma * -1) {
 
 
                     speed = deviceorientation.setSpeed;
-            	}else if(gamma > deviceorientation.setGamma){
+                } else if (gamma > deviceorientation.setGamma) {
                     speed = deviceorientation.setSpeed * -1;
-                }else{
+                } else {
                     speed = 0;
                 }
             }, false);
-            if(firstRun){
+            if (firstRun) {
                 window.requestAnimationFrame(updatePosition);
             }
         }
 
-        if(opts.slide){
-	        targ.addEventListener('touchstart', function(e) {
-	            _touchstart(e);
-	        });
-	        targ.addEventListener('touchmove', function(e) {
-	            _touchmove(e);
-	        });
-	        targ.addEventListener('touchend', function(e) {
-	            _touchend(e);
-	        });
+        if (opts.slide) {
+            targ.addEventListener('touchstart', function(e) {
+                _touchstart(e);
+            });
+            targ.addEventListener('touchmove', function(e) {
+                _touchmove(e);
+            });
+            targ.addEventListener('touchend', function(e) {
+                _touchend(e);
+            });
 
         }
     };
@@ -107,8 +121,8 @@ var PhotoTiltSlide = function(opts) {
     var _touchstart = function(e) {
         e.preventDefault();
         x = e.targetTouches[0].clientX;
-        if(slide.timeout != 0) isStop = true;
-        
+        if (slide.timeout != 0) isStop = true;
+
         clearTimeout(st);
     };
 
@@ -127,9 +141,9 @@ var PhotoTiltSlide = function(opts) {
         playTo = playTo + disX + firstPoi;
 
 
-        if(playTo > 0){
+        if (playTo > 0) {
             playTo = 0;
-        }else if(playTo < targData.width * -1 + viewport.width){
+        } else if (playTo < targData.width * -1 + viewport.width) {
 
             playTo = targData.width * -1 + viewport.width;
         }
@@ -156,54 +170,54 @@ var PhotoTiltSlide = function(opts) {
     var _touchend = function(e) {
         e.preventDefault();
 
-        if(slide.timeout != 0){
-        	st = setTimeout(function(){
-	        	isStop = false;
-	        },slide.timeout * 1000);
+        if (slide.timeout != 0) {
+            st = setTimeout(function() {
+                isStop = false;
+            }, slide.timeout * 1000);
         }
         // slide.isTouch = false;
 
     };
 
-    var updatePosition = function(){
-    	firstRun = false;
-    	console.log(playTo);
-        if(playTo > speed * -1){
+    var updatePosition = function() {
+        firstRun = false;
+        console.log(playTo);
+        if (playTo > speed * -1) {
             playTo = speed * -1;
-        }else if(playTo < delta - speed){
+        } else if (playTo < delta - speed) {
             playTo = delta - speed;
-        }else if(slide.isTouch && !isStop){
+        } else if (slide.isTouch && !isStop) {
             playTo = playTo + firstPoi + speed;
             firstPoi = 0;
             setTranslateX(targ, playTo);
         }
-            // console.log(playTo);
+        // console.log(playTo);
 
 
-                   
-		window.requestAnimationFrame(updatePosition);
+
+        window.requestAnimationFrame(updatePosition);
     }
 
     var setTranslateX = function(node, amount) {
-		node.style.webkitTransform =
-		node.style.transform = "translate3d(" + Math.round(amount) + "px, 0, 0)";
-	};
+        node.style.webkitTransform =
+            node.style.transform = "translate3d(" + Math.round(amount) + "px, 0, 0)";
+    };
 
     var cssXY = function(elem, type) {
-    	if(type == 'x' || type == 'X'){
-    		if (elem.style.width) return elem.style.width;
-	        if (elem.currentStyle) return elem.currentStyle.width;
-	        if (document.defaultView && document.defaultView.getComputedStyle)
-	            return document.defaultView.getComputedStyle(elem, "").getPropertyValue("width");
-    	}else if(type == 'y' || type == 'Y'){
-    		if (elem.style.width) return elem.style.height;
-	        if (elem.currentStyle) return elem.currentStyle.height;
-	        if (document.defaultView && document.defaultView.getComputedStyle)
-	            return document.defaultView.getComputedStyle(elem, "").getPropertyValue("height");
-    	}else{
-    		return false;
-    	}
-        
+        if (type == 'x' || type == 'X') {
+            if (elem.style.width) return elem.style.width;
+            if (elem.currentStyle) return elem.currentStyle.width;
+            if (document.defaultView && document.defaultView.getComputedStyle)
+                return document.defaultView.getComputedStyle(elem, "").getPropertyValue("width");
+        } else if (type == 'y' || type == 'Y') {
+            if (elem.style.width) return elem.style.height;
+            if (elem.currentStyle) return elem.currentStyle.height;
+            if (document.defaultView && document.defaultView.getComputedStyle)
+                return document.defaultView.getComputedStyle(elem, "").getPropertyValue("height");
+        } else {
+            return false;
+        }
+
     };
 
     var getViewPort = function() {
@@ -217,18 +231,18 @@ var PhotoTiltSlide = function(opts) {
 
     };
 
-    var getWrapData = function(){
-    	targData = {
-			width: cssXY(targ, 'x').replace("px", ""),
-			height: cssXY(targ, 'y').replace("px", "")
-		};
+    var getWrapData = function() {
+        targData = {
+            width: cssXY(targ, 'x').replace("px", ""),
+            height: cssXY(targ, 'y').replace("px", "")
+        };
 
     };
 
     _init();
 };
 
-if (typeof module ==  'object') {
+if (typeof module == 'object') {
     module.exports = PhotoTiltSlide;
 } else {
     window.photoTiltSlide = PhotoTiltSlide;
