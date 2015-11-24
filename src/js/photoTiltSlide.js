@@ -38,6 +38,7 @@ var PhotoTiltSlide = function(opts) {
 
         //deviceorientation相关数据
         speed = 0, //速度
+        avaerageGamma = 1,  //加速度
         firstRun = true; //是否第一次执行动画
 
     window.requestAnimationFrame = window.requestAnimationFrame ||
@@ -70,7 +71,7 @@ var PhotoTiltSlide = function(opts) {
             deviceorientation.setSpeed = opts.deviceorientation.setSpeed || 2;
             deviceorientation.setPoi = opts.deviceorientation.setPoi || 0.2;
             playTo = firstPoi = targData.width * deviceorientation.setPoi * -1; //初始化当前视口所在位置
-
+            deviceorientation.acceleration = opts.deviceorientation.acceleration || false;
         } else {
             playTo = firstPoi = 0;
         }
@@ -86,15 +87,34 @@ var PhotoTiltSlide = function(opts) {
     var _bindEvent = function() {
         if (window.DeviceOrientationEvent && opts.deviceorientation) {
 
+            var totalGamma = [];
+
             window.addEventListener('deviceorientation', function(eventData) {
                 var gamma = eventData.gamma;
                 // console.log(gamma);
+                if(deviceorientation.acceleration){
+                    totalGamma.push(gamma);
+                    if(totalGamma.length > 8){
+                        totalGamma.shift();
+                    }
+                    avaerageGamma = Math.floor(totalGamma.reduce(function(a, b) { return a+b; }) / totalGamma.length);
+
+                }
+
+                
+
+                // console.log(avaerageGamma);
+
                 if (gamma < deviceorientation.setGamma * -1) {
 
-
-                    speed = deviceorientation.setSpeed;
+                    // speed = deviceorientation.setSpeed;
+                    speed = deviceorientation.acceleration ? avaerageGamma * -1 : deviceorientation.setSpeed;
                 } else if (gamma > deviceorientation.setGamma) {
-                    speed = deviceorientation.setSpeed * -1;
+                    // speed = deviceorientation.setSpeed * -1;
+
+                    speed = deviceorientation.acceleration ? avaerageGamma * -1 : deviceorientation.setSpeed * -1;
+
+
                 } else {
                     speed = 0;
                 }
@@ -181,7 +201,7 @@ var PhotoTiltSlide = function(opts) {
 
     var updatePosition = function() {
         firstRun = false;
-        console.log(playTo);
+        // console.log(playTo);
         if (playTo > speed * -1) {
             playTo = speed * -1;
         } else if (playTo < delta - speed) {
